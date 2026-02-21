@@ -38,8 +38,8 @@
 ### Phase 3: GitHub & Deployment (Priority: HIGH)
 
 - [x] **Push to GitHub**
-  - Created repo: `dineshbhat/iab-deals-mcp-server` ✅
-  - URL: https://github.com/dineshbhat/iab-deals-mcp-server
+  - Created repo: `Hypermindz-AI/iab-deals-mcp-server` ✅
+  - URL: https://github.com/Hypermindz-AI/iab-deals-mcp-server
   - Add LICENSE file (MIT)
   - Configure GitHub Actions for CI
 
@@ -95,7 +95,7 @@ Per conversation with Shailley (Feb 17-18, 2026):
 | Schema/object model | ✅ Complete | Zod schemas in `src/models/` |
 | Tool taxonomy | ✅ Complete | 9 tools: create/update/send/confirm/status/list/pause/resume/providers |
 | Architecture diagram | ✅ Complete | In `clients/iab-tech-lab/diagrams/` |
-| GitHub repo | ✅ Complete | https://github.com/dineshbhat/iab-deals-mcp-server |
+| GitHub repo | ✅ Complete | https://github.com/Hypermindz-AI/iab-deals-mcp-server |
 | Demo functionality | 🔄 Testing | Server starts, demo data seeds - need Claude Desktop validation |
 
 **Due Date:** ~March 4, 2026
