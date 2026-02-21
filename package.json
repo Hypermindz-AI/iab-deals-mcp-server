@@ -1,0 +1,37 @@
+{
+  "name": "iab-deals-mcp-server",
+  "version": "0.1.0",
+  "description": "MCP Server implementing IAB Deals API v1.0 for programmatic deal management",
+  "type": "module",
+  "main": "dist/index.js",
+  "bin": {
+    "iab-deals-mcp": "dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "tsx watch src/index.ts",
+    "test": "vitest",
+    "lint": "eslint src/",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": ["mcp", "iab", "deals", "advertising", "programmatic"],
+  "author": "HyperMindZ <engineering@hypermindz.ai>",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "better-sqlite3": "^11.0.0",
+    "dotenv": "^16.4.0",
+    "zod": "^3.22.0"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.0",
+    "@types/node": "^20.0.0",
+    "tsx": "^4.7.0",
+    "typescript": "^5.3.0",
+    "vitest": "^1.2.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
