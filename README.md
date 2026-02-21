@@ -20,7 +20,7 @@ This MCP server provides tools for managing programmatic advertising deals follo
 
 ```bash
 # Clone the repository
-git clone https://github.com/hypermindz/iab-deals-mcp-server.git
+git clone https://github.com/Hypermindz-AI/iab-deals-mcp-server.git
 cd iab-deals-mcp-server
 
 # Install dependencies
