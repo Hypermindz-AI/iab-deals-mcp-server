@@ -4,15 +4,15 @@
  * MCP Server implementing IAB Deals API v1.0 for programmatic deal management
  *
  * Tools:
- * - deals/create: Create a new deal in draft status
- * - deals/update: Update deal properties
- * - deals/send: Send deal to a DSP/SSP provider
- * - deals/confirm: Activate an approved deal
- * - deals/status: Get deal status and metrics
- * - deals/list: List deals with filtering
- * - deals/pause: Pause an active deal
- * - deals/resume: Resume a paused deal
- * - providers/list: List available providers
+ * - deals_create: Create a new deal in draft status
+ * - deals_update: Update deal properties
+ * - deals_send: Send deal to a DSP/SSP provider
+ * - deals_confirm: Activate an approved deal
+ * - deals_status: Get deal status and metrics
+ * - deals_list: List deals with filtering
+ * - deals_pause: Pause an active deal
+ * - deals_resume: Resume a paused deal
+ * - providers_list: List available providers
  */
 
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
@@ -47,7 +47,7 @@ import {
 // Tool definitions for MCP
 const TOOLS = [
   {
-    name: "deals/create",
+    name: "deals_create",
     description: "Create a new programmatic deal. Returns the deal in PENDING status ready to be sent to providers.",
     inputSchema: {
       type: "object",
@@ -73,7 +73,7 @@ const TOOLS = [
     },
   },
   {
-    name: "deals/update",
+    name: "deals_update",
     description: "Update an existing deal's properties. Cannot update deals that have been sent to providers.",
     inputSchema: {
       type: "object",
@@ -91,7 +91,7 @@ const TOOLS = [
     },
   },
   {
-    name: "deals/send",
+    name: "deals_send",
     description: "Send a deal to a DSP/SSP provider for approval. Creates a buyer seat and submits to the provider.",
     inputSchema: {
       type: "object",
@@ -104,7 +104,7 @@ const TOOLS = [
     },
   },
   {
-    name: "deals/confirm",
+    name: "deals_confirm",
     description: "Confirm/activate a deal after provider approval. Marks the deal as ACTIVE.",
     inputSchema: {
       type: "object",
@@ -116,7 +116,7 @@ const TOOLS = [
     },
   },
   {
-    name: "deals/status",
+    name: "deals_status",
     description: "Get the current status of a deal including all buyer seat statuses.",
     inputSchema: {
       type: "object",
@@ -127,7 +127,7 @@ const TOOLS = [
     },
   },
   {
-    name: "deals/list",
+    name: "deals_list",
     description: "List all deals with optional filtering by status. Returns paginated results.",
     inputSchema: {
       type: "object",
@@ -139,7 +139,7 @@ const TOOLS = [
     },
   },
   {
-    name: "deals/pause",
+    name: "deals_pause",
     description: "Pause an active deal. Notifies all connected providers.",
     inputSchema: {
       type: "object",
@@ -151,7 +151,7 @@ const TOOLS = [
     },
   },
   {
-    name: "deals/resume",
+    name: "deals_resume",
     description: "Resume a paused deal. Notifies all connected providers.",
     inputSchema: {
       type: "object",
@@ -162,7 +162,7 @@ const TOOLS = [
     },
   },
   {
-    name: "providers/list",
+    name: "providers_list",
     description: "List all available DSP/SSP providers that deals can be sent to.",
     inputSchema: {
       type: "object",
@@ -214,31 +214,31 @@ async function main() {
       let result: any;
 
       switch (name) {
-        case "deals/create":
+        case "deals_create":
           result = dealsCreate(dealsCreateSchema.parse(args));
           break;
-        case "deals/update":
+        case "deals_update":
           result = dealsUpdate(dealsUpdateSchema.parse(args));
           break;
-        case "deals/send":
+        case "deals_send":
           result = await dealsSend(dealsSendSchema.parse(args));
           break;
-        case "deals/confirm":
+        case "deals_confirm":
           result = await dealsConfirm(dealsConfirmSchema.parse(args));
           break;
-        case "deals/status":
+        case "deals_status":
           result = await dealsStatus(dealsStatusSchema.parse(args));
           break;
-        case "deals/list":
+        case "deals_list":
           result = dealsList(dealsListSchema.parse(args || {}));
           break;
-        case "deals/pause":
+        case "deals_pause":
           result = await dealsPause(dealsPauseSchema.parse(args));
           break;
-        case "deals/resume":
+        case "deals_resume":
           result = await dealsResume(dealsResumeSchema.parse(args));
           break;
-        case "providers/list":
+        case "providers_list":
           result = providersList();
           break;
         default:

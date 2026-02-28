@@ -125,7 +125,7 @@
 > "Two layers: API key for MCP server access, and per-provider OAuth2/API keys for DSP/SSP integrations."
 
 **Q: What providers are supported?**
-> "Currently mock provider for demo. Real integrations planned for TTD, DV360, FreeWheel, and Magnite."
+> "Currently mock provider for demo. Real integrations planned"
 
 **Q: Can this run on Vercel/serverless?**
 > "Yes! TypeScript + SQLite (Turso) means easy edge deployment. The mock provider has no external dependencies."

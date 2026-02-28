@@ -6,11 +6,17 @@
 import Database from "better-sqlite3";
 import { randomUUID } from "crypto";
 import { existsSync, mkdirSync } from "fs";
-import { dirname } from "path";
+import { dirname, resolve, join } from "path";
+import { fileURLToPath } from "url";
 import { appConfig } from "../config.js";
 import { CREATE_TABLES_SQL } from "./schema.js";
 import type { Deal, Terms, Inventory, BuyerSeat } from "../models/index.js";
 import { SellerStatus, BuyerStatus } from "../models/index.js";
+
+// Resolve project root from this file's location (dist/db/database.js -> project root)
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+const PROJECT_ROOT = resolve(__dirname, "..", "..");
 
 let db: Database.Database | null = null;
 
@@ -18,8 +24,11 @@ let db: Database.Database | null = null;
 export function initDatabase(): Database.Database {
   if (db) return db;
 
-  // Ensure data directory exists
-  const dbPath = appConfig.databaseUrl.replace("file:", "").replace("./", "");
+  // Ensure data directory exists - resolve relative paths against project root
+  let dbPath = appConfig.databaseUrl.replace("file:", "");
+  if (dbPath.startsWith("./") || !dbPath.startsWith("/")) {
+    dbPath = join(PROJECT_ROOT, dbPath.replace("./", ""));
+  }
   const dir = dirname(dbPath);
   if (dir && !existsSync(dir)) {
     mkdirSync(dir, { recursive: true });

@@ -29,5 +29,9 @@ npm-debug.log*
 # Test coverage
 coverage/
 
+# Demo recordings and test results
+demo/test-results/
+test-results/
+
 # Vercel
 .vercel/

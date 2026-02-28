@@ -13,7 +13,7 @@ export function seedDemoData(): void {
     return; // Already has data
   }
 
-  console.log("Seeding demo data...");
+  console.error("Seeding demo data...");
 
   // Deal 1: Q1 Premium CTV Campaign
   createDeal(
@@ -135,5 +135,5 @@ export function seedDemoData(): void {
     }
   );
 
-  console.log("Demo data seeded successfully.");
+  console.error("Demo data seeded successfully.");
 }
