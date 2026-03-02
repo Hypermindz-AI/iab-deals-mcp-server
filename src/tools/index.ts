@@ -1,6 +1,6 @@
 /**
  * IAB Deals MCP Server - Tool Definitions
- * All 8 MCP tools for deal management
+ * All 9 MCP tools for deal management per IAB Deal Sync API v1.0
  */
 
 import { z } from "zod";
@@ -20,6 +20,12 @@ import {
   SellerStatus,
   BuyerStatus,
   PriceType,
+  AuxData,
+  PubCount,
+  DynamicInventory,
+  IncludedInventory,
+  CurationFeeType,
+  Guaranteed,
   SellerStatusLabels,
   BuyerStatusLabels,
   AdTypeLabels,
@@ -35,14 +41,27 @@ export const dealsCreateSchema = z.object({
   origin: z.string().describe("Domain receiving bid responses"),
   seller: z.string().describe("Business entity sourcing demand"),
   description: z.string().max(250).optional().describe("Brief description (max 250 chars)"),
-  adTypes: z.array(z.nativeEnum(AdType)).min(1).describe("Ad formats: 1=Banner, 2=Video, 3=Audio, 4=Native"),
+  adTypes: z.array(z.nativeEnum(AdType)).optional().describe("Ad formats: 1=Banner, 2=Video, 3=Audio, 4=Native (empty=all)"),
   dealFloor: z.number().min(0).describe("Minimum CPM price"),
   currency: z.string().length(3).default("USD").describe("ISO-4217 currency code"),
-  priceType: z.nativeEnum(PriceType).default(PriceType.FLOOR).describe("1=floor, 2=fixed"),
+  priceType: z.nativeEnum(PriceType).default(PriceType.SECOND_PRICE_PLUS).describe("0=Dynamic, 1=First Price, 2=Second Price Plus, 3=Fixed"),
   startDate: z.string().datetime().describe("Deal start date (ISO-8601)"),
   endDate: z.string().datetime().nullable().optional().describe("Deal end date (null=evergreen)"),
-  geoCountries: z.array(z.string()).optional().describe("ISO-3166-1 alpha-3 country codes"),
-  geoRegions: z.array(z.string()).optional().describe("ISO-3166-2 region codes"),
+  countries: z.array(z.string()).optional().describe("ISO-3166-1 alpha-3 country codes"),
+  wseat: z.array(z.string()).optional().describe("Whitelisted buyer seat IDs"),
+  bseat: z.array(z.string()).optional().describe("Blocked buyer seat IDs"),
+  auxData: z.nativeEnum(AuxData).optional().describe("Auxiliary data signal (0-4)"),
+  pubCount: z.nativeEnum(PubCount).optional().describe("Publisher count (0-2)"),
+  dInventory: z.nativeEnum(DynamicInventory).optional().describe("Dynamic inventory flag (0-2)"),
+  guar: z.nativeEnum(Guaranteed).optional().describe("Guaranteed flag: 0=Non-guaranteed, 1=Guaranteed"),
+  units: z.number().int().optional().describe("Total units (impressions)"),
+  totalCost: z.number().optional().describe("Total cost of the deal"),
+  curation: z.object({
+    curator: z.string().optional(),
+    cdealId: z.string().optional(),
+    curFeeType: z.nativeEnum(CurationFeeType).optional(),
+    ext: z.record(z.unknown()).optional(),
+  }).optional().describe("Curation details"),
 });
 
 export type DealsCreateInput = z.infer<typeof dealsCreateSchema>;
@@ -53,24 +72,27 @@ export function dealsCreate(input: DealsCreateInput): DealResponse {
       input.name,
       input.origin,
       input.seller,
-      input.adTypes,
+      input.adTypes || [],
       {
         dealFloor: input.dealFloor,
         currency: input.currency || "USD",
-        priceType: input.priceType || PriceType.FLOOR,
+        priceType: input.priceType ?? PriceType.SECOND_PRICE_PLUS,
         startDate: input.startDate,
         endDate: input.endDate || null,
+        countries: input.countries || [],
+        guar: input.guar ?? null,
+        units: input.units ?? null,
+        totalCost: input.totalCost ?? null,
+        ext: null,
       },
       {
         description: input.description,
-        inventory: input.geoCountries || input.geoRegions
-          ? {
-              geoCountries: input.geoCountries || [],
-              geoRegions: input.geoRegions || [],
-              publisherIds: [],
-              siteIds: [],
-            }
-          : undefined,
+        wseat: input.wseat,
+        bseat: input.bseat,
+        auxData: input.auxData ?? null,
+        pubCount: input.pubCount ?? null,
+        dInventory: input.dInventory ?? null,
+        curation: input.curation || null,
       }
     );
 
@@ -88,11 +110,26 @@ export const dealsUpdateSchema = z.object({
   id: z.string().uuid().describe("Deal ID to update"),
   name: z.string().min(1).max(255).optional().describe("New deal name"),
   description: z.string().max(250).optional().describe("New description"),
-  adTypes: z.array(z.nativeEnum(AdType)).min(1).optional().describe("New ad formats"),
+  adTypes: z.array(z.nativeEnum(AdType)).optional().describe("New ad formats"),
   dealFloor: z.number().min(0).optional().describe("New minimum CPM"),
   currency: z.string().length(3).optional().describe("New currency code"),
   startDate: z.string().datetime().optional().describe("New start date"),
   endDate: z.string().datetime().nullable().optional().describe("New end date"),
+  countries: z.array(z.string()).optional().describe("New country codes"),
+  wseat: z.array(z.string()).optional().describe("New whitelisted buyer seat IDs"),
+  bseat: z.array(z.string()).optional().describe("New blocked buyer seat IDs"),
+  auxData: z.nativeEnum(AuxData).optional().describe("New auxiliary data signal"),
+  pubCount: z.nativeEnum(PubCount).optional().describe("New publisher count"),
+  dInventory: z.nativeEnum(DynamicInventory).optional().describe("New dynamic inventory flag"),
+  guar: z.nativeEnum(Guaranteed).optional().describe("New guaranteed flag"),
+  units: z.number().int().optional().describe("New total units"),
+  totalCost: z.number().optional().describe("New total cost"),
+  curation: z.object({
+    curator: z.string().optional(),
+    cdealId: z.string().optional(),
+    curFeeType: z.nativeEnum(CurationFeeType).optional(),
+    ext: z.record(z.unknown()).optional(),
+  }).nullable().optional().describe("New curation details (null to remove)"),
 });
 
 export type DealsUpdateInput = z.infer<typeof dealsUpdateSchema>;
@@ -108,11 +145,21 @@ export function dealsUpdate(input: DealsUpdateInput): DealResponse {
       name: input.name,
       description: input.description,
       adTypes: input.adTypes,
+      wseat: input.wseat,
+      bseat: input.bseat,
+      auxData: input.auxData,
+      pubCount: input.pubCount,
+      dInventory: input.dInventory,
+      curation: input.curation,
       terms: {
         dealFloor: input.dealFloor,
         currency: input.currency,
         startDate: input.startDate,
         endDate: input.endDate,
+        countries: input.countries,
+        guar: input.guar,
+        units: input.units,
+        totalCost: input.totalCost,
       },
     });
 
@@ -173,7 +220,8 @@ export async function dealsSend(input: DealsSendInput): Promise<{
         updateDealStatus(input.dealId, SellerStatus.ACTIVE, "system", "Deal sent to provider");
       }
     } else {
-      updateBuyerSeatStatus(buyerSeat.id, BuyerStatus.ERROR, {
+      // Use REJECTED + rejectionReason instead of removed ERROR status
+      updateBuyerSeatStatus(buyerSeat.id, BuyerStatus.REJECTED, {
         rejectionReason: response.message,
       });
     }
@@ -207,12 +255,12 @@ export async function dealsConfirm(input: DealsConfirmInput): Promise<DealRespon
       return { success: false, error: `Deal not found: ${input.dealId}` };
     }
 
-    // Check if any buyer seats are accepted
-    const acceptedSeats = deal.buyerSeats.filter(
-      (s) => s.buyerStatus === BuyerStatus.ACCEPTED || s.buyerStatus === BuyerStatus.PENDING
+    // Check if any buyer seats are approved or pending
+    const confirmableSeats = deal.buyerSeats.filter(
+      (s) => s.buyerStatus === BuyerStatus.APPROVED || s.buyerStatus === BuyerStatus.PENDING
     );
 
-    if (acceptedSeats.length === 0) {
+    if (confirmableSeats.length === 0) {
       return { success: false, error: "No buyer seats to confirm. Send deal to a provider first." };
     }
 
@@ -222,12 +270,12 @@ export async function dealsConfirm(input: DealsConfirmInput): Promise<DealRespon
       if (!seat || seat.dealId !== input.dealId) {
         return { success: false, error: `Buyer seat not found or doesn't belong to this deal` };
       }
-      updateBuyerSeatStatus(input.buyerSeatId, BuyerStatus.ACCEPTED);
+      updateBuyerSeatStatus(input.buyerSeatId, BuyerStatus.APPROVED);
     } else {
       // Confirm all pending seats
-      for (const seat of acceptedSeats) {
+      for (const seat of confirmableSeats) {
         if (seat.buyerStatus === BuyerStatus.PENDING) {
-          updateBuyerSeatStatus(seat.id, BuyerStatus.ACCEPTED);
+          updateBuyerSeatStatus(seat.id, BuyerStatus.APPROVED);
         }
       }
     }
@@ -348,7 +396,7 @@ export async function dealsPause(input: DealsPauseInput): Promise<DealResponse> 
 
     // Pause with each provider
     for (const seat of deal.buyerSeats) {
-      if (seat.buyerStatus === BuyerStatus.ACCEPTED) {
+      if (seat.buyerStatus === BuyerStatus.APPROVED || seat.buyerStatus === BuyerStatus.ACTIVE) {
         const provider = getProvider(seat.providerId);
         if (provider?.isAvailable()) {
           await provider.pauseDeal(deal, seat);
@@ -392,7 +440,7 @@ export async function dealsResume(input: DealsResumeInput): Promise<DealResponse
         const provider = getProvider(seat.providerId);
         if (provider?.isAvailable()) {
           await provider.resumeDeal(deal, seat);
-          updateBuyerSeatStatus(seat.id, BuyerStatus.ACCEPTED);
+          updateBuyerSeatStatus(seat.id, BuyerStatus.APPROVED);
         }
       }
     }

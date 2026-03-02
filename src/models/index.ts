@@ -7,6 +7,7 @@
 export * from "./enums.js";
 
 // Schemas and Types
+export * from "./curation.js";
 export * from "./terms.js";
 export * from "./inventory.js";
 export * from "./buyer-seat.js";
