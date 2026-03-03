@@ -13,7 +13,7 @@
 - [x] README documentation
 - [x] Git repository initialized
 - [x] Claude Desktop configuration
-- [x] GitHub repo: https://github.com/Hypermindz-AI/iab-deals-mcp-server
+- [x] GitHub repo: https://github.com/IABTechLab/iab-deals-mcp-server
 - [x] MIT License
 - [x] Demo script for March 12 Bootcamp
 
@@ -31,8 +31,8 @@
 ### Phase 3: GitHub & Deployment ✅
 
 - [x] **Push to GitHub**
-  - Created repo: `Hypermindz-AI/iab-deals-mcp-server` ✅
-  - URL: https://github.com/Hypermindz-AI/iab-deals-mcp-server
+  - Created repo: `IABTechLab/iab-deals-mcp-server` ✅
+  - URL: https://github.com/IABTechLab/iab-deals-mcp-server
   - MIT License added ✅
 
 - [ ] **npm publishing** (optional, post-March 12)
@@ -82,19 +82,13 @@
 
 ## IAB Tech Lab Deliverables
 
-Per conversation with Shailley (Feb 17-18, 2026):
-
 | Deliverable | Status | Notes |
 |-------------|--------|-------|
 | Schema/object model | ✅ Complete | Zod schemas in `src/models/` |
 | Tool taxonomy | ✅ Complete | 9 tools: create/update/send/confirm/status/list/pause/resume/providers |
-| Architecture diagram | ✅ Complete | In `clients/iab-tech-lab/diagrams/` |
-| GitHub repo | ✅ Complete | https://github.com/Hypermindz-AI/iab-deals-mcp-server |
+| GitHub repo | ✅ Complete | https://github.com/IABTechLab/iab-deals-mcp-server |
 | Demo script | ✅ Complete | `docs/DEMO_SCRIPT.md` |
 | Demo functionality | ✅ Complete | Server starts, seeds demo data, 9 tools working |
-
-**Due Date:** ~March 4, 2026
-**Demo Event:** March 12, 2026 (IAB Tech Lab Bootcamp)
 
 ---
 
@@ -116,16 +110,6 @@ Per conversation with Shailley (Feb 17-18, 2026):
 - Standalone demo without credentials
 - Predictable behavior for testing
 - Template for real integrations
-
----
-
-## Key Contacts
-
-| Name | Role | For |
-|------|------|-----|
-| Hillary Slattery | Tech Lead | MCP server scope/requirements |
-| Shailley Singh | COO | Strategic direction |
-| Miguel Morales | Director | Agentic Task Force updates |
 
 ---
 
