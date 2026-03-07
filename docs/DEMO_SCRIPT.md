@@ -140,7 +140,7 @@
 **If demo fails:**
 1. Show the code structure and explain architecture
 2. Walk through the README documentation
-3. Show the data model diagrams
+3. Show the ERD diagrams from the IAB Tech Lab folder
 
 **If network issues:**
 - All functionality is local (SQLite + mock provider)
@@ -151,7 +151,7 @@
 ## Post-Demo Resources
 
 Share these links:
-- GitHub: https://github.com/IABTechLab/iab-deals-mcp-server
+- GitHub: https://github.com/Hypermindz-AI/iab-deals-mcp-server
 - IAB Deals API Spec: https://iabtechlab.com/standards/deals-api/
 - MCP Documentation: https://modelcontextprotocol.io/
 

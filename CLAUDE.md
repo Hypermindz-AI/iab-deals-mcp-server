@@ -9,6 +9,8 @@ This file provides guidance to Claude Code when working with this repository.
 **Purpose:** Reference implementation for IAB Tech Lab Agentic Task Force demonstrating how AI agents can manage programmatic deals via MCP.
 
 **Client:** IAB Tech Lab
+**Deadline:** ~March 4, 2026
+**Event:** IAB Tech Lab Bootcamp - March 12, 2026
 
 ## Tech Stack
 
@@ -66,12 +68,12 @@ npm run lint         # ESLint
 | `deals/resume` | Resume deal | PAUSED → ACTIVE |
 | `providers/list` | List providers | (read-only) |
 
-## IAB Deal Sync API v1.0 Status Codes
+## IAB Deals API Status Codes
 
-**Seller Status:** 0=Active, 1=Paused, 2=Pending, 4=Complete, 5=Archived
-**Buyer Status:** 0=Pending, 1=Approved, 2=Rejected, 3=Ready to Serve, 4=Active, 5=Paused, 6=Complete
+**Seller Status:** 0=Active, 1=Paused, 2=Pending, 4=Complete
+**Buyer Status:** 0=Pending, 1=Accepted, 2=Rejected, 3=Expired, 4=Paused, 5=Error
 **Ad Types:** 1=Banner, 2=Video, 3=Audio, 4=Native
-**Price Types:** 0=Dynamic, 1=First Price, 2=Second Price Plus (default), 3=Fixed
+**Price Types:** 1=Floor (minimum), 2=Fixed
 
 ## Authentication
 
@@ -89,7 +91,7 @@ Add to `~/Library/Application Support/Claude/claude_desktop_config.json`:
   "mcpServers": {
     "iab-deals": {
       "command": "node",
-      "args": ["/path/to/iab-deals-mcp-server/dist/index.js"],
+      "args": ["/Users/dineshbhat/sandbox/hypermindz/iab-deals-mcp-server/dist/index.js"],
       "env": {
         "NODE_ENV": "demo",
         "SEED_DEMO_DATA": "true"
@@ -108,3 +110,8 @@ Add to `~/Library/Application Support/Claude/claude_desktop_config.json`:
 - `src/db/seed.ts` - Demo data (5 sample deals)
 - `docs/PLAN.md` - Implementation plan and next steps
 
+## Related Documents
+
+- IAB Tech Lab client folder: `/Users/dineshbhat/sandbox/dinesh-non-tech/clients/iab-tech-lab/`
+- Implementation approach: `clients/iab-tech-lab/mcp-implementation-approach.md`
+- ERD diagrams: `clients/iab-tech-lab/diagrams/`

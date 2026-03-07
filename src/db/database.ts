@@ -1,6 +1,6 @@
 /**
  * IAB Deals MCP Server - Database Operations
- * SQLite database with better-sqlite3, per IAB Deal Sync API v1.0
+ * SQLite database with better-sqlite3
  */
 
 import Database from "better-sqlite3";
@@ -10,7 +10,7 @@ import { dirname, resolve, join } from "path";
 import { fileURLToPath } from "url";
 import { appConfig } from "../config.js";
 import { CREATE_TABLES_SQL } from "./schema.js";
-import type { Deal, Terms, Inventory, BuyerSeat, Curation } from "../models/index.js";
+import type { Deal, Terms, Inventory, BuyerSeat } from "../models/index.js";
 import { SellerStatus, BuyerStatus } from "../models/index.js";
 
 // Resolve project root from this file's location (dist/db/database.js -> project root)
@@ -93,13 +93,6 @@ export function createDeal(
     description?: string;
     inventory?: Omit<Inventory, "dealId">;
     organizationId?: string;
-    wseat?: string[];
-    bseat?: string[];
-    auxData?: number | null;
-    pubCount?: number | null;
-    dInventory?: number | null;
-    curation?: Partial<Curation> | null;
-    ext?: Record<string, unknown> | null;
   }
 ): Deal {
   const database = getDatabase();
@@ -110,8 +103,8 @@ export function createDeal(
 
   // Insert deal
   database.prepare(`
-    INSERT INTO deals (id, external_deal_id, origin, name, seller, description, seller_status, ad_types, wseat, bseat, auxdata, pubcount, dinventory, ext, organization_id, created_at, updated_at)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO deals (id, external_deal_id, origin, name, seller, description, seller_status, ad_types, organization_id, created_at, updated_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `).run(
     dealId,
     externalDealId,
@@ -121,12 +114,6 @@ export function createDeal(
     options?.description || null,
     SellerStatus.PENDING,
     JSON.stringify(adTypes),
-    JSON.stringify(options?.wseat || []),
-    JSON.stringify(options?.bseat || []),
-    options?.auxData ?? null,
-    options?.pubCount ?? null,
-    options?.dInventory ?? null,
-    options?.ext ? JSON.stringify(options.ext) : null,
     orgId,
     now,
     now
@@ -134,53 +121,29 @@ export function createDeal(
 
   // Insert terms
   database.prepare(`
-    INSERT INTO terms (deal_id, deal_floor, currency, price_type, start_date, end_date, countries, guar, units, totalcost, ext)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO terms (deal_id, deal_floor, currency, price_type, start_date, end_date)
+    VALUES (?, ?, ?, ?, ?, ?)
   `).run(
     dealId,
     terms.dealFloor,
     terms.currency,
     terms.priceType,
     terms.startDate,
-    terms.endDate,
-    JSON.stringify(terms.countries || []),
-    terms.guar ?? null,
-    terms.units ?? null,
-    terms.totalCost ?? null,
-    terms.ext ? JSON.stringify(terms.ext) : null
+    terms.endDate
   );
 
   // Insert inventory if provided
   if (options?.inventory) {
     const inv = options.inventory;
     database.prepare(`
-      INSERT INTO inventory (deal_id, incl_inventory, device_type, seller_ids, site_domains, app_bundles, cat, cat_tax, ext)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `).run(
-      dealId,
-      JSON.stringify(inv.inclInventory || []),
-      JSON.stringify(inv.deviceType || []),
-      JSON.stringify(inv.sellerIds || []),
-      JSON.stringify(inv.siteDomains || []),
-      JSON.stringify(inv.appBundles || []),
-      JSON.stringify(inv.cat || []),
-      inv.catTax ?? null,
-      inv.ext ? JSON.stringify(inv.ext) : null
-    );
-  }
-
-  // Insert curation if provided
-  if (options?.curation) {
-    const cur = options.curation;
-    database.prepare(`
-      INSERT INTO curation (deal_id, curator, cdealid, curfeetype, ext)
+      INSERT INTO inventory (deal_id, geo_countries, geo_regions, publisher_ids, site_ids)
       VALUES (?, ?, ?, ?, ?)
     `).run(
       dealId,
-      cur.curator || null,
-      cur.cdealId || null,
-      cur.curFeeType ?? null,
-      cur.ext ? JSON.stringify(cur.ext) : null
+      JSON.stringify(inv.geoCountries || []),
+      JSON.stringify(inv.geoRegions || []),
+      JSON.stringify(inv.publisherIds || []),
+      JSON.stringify(inv.siteIds || [])
     );
   }
 
@@ -194,16 +157,11 @@ export function getDealById(id: string): Deal | null {
   const database = getDatabase();
 
   const row = database.prepare(`
-    SELECT d.*,
-           t.deal_floor, t.currency, t.price_type, t.start_date, t.end_date,
-           t.countries AS t_countries, t.guar, t.units, t.totalcost, t.ext AS t_ext,
-           i.incl_inventory, i.device_type, i.seller_ids, i.site_domains,
-           i.app_bundles, i.cat, i.cat_tax, i.ext AS i_ext,
-           c.curator, c.cdealid, c.curfeetype, c.ext AS c_ext
+    SELECT d.*, t.deal_floor, t.currency, t.price_type, t.start_date, t.end_date,
+           i.geo_countries, i.geo_regions, i.publisher_ids, i.site_ids
     FROM deals d
     LEFT JOIN terms t ON d.id = t.deal_id
     LEFT JOIN inventory i ON d.id = i.deal_id
-    LEFT JOIN curation c ON d.id = c.deal_id
     WHERE d.id = ?
   `).get(id) as any;
 
@@ -216,16 +174,11 @@ export function getDealByExternalId(externalDealId: string): Deal | null {
   const database = getDatabase();
 
   const row = database.prepare(`
-    SELECT d.*,
-           t.deal_floor, t.currency, t.price_type, t.start_date, t.end_date,
-           t.countries AS t_countries, t.guar, t.units, t.totalcost, t.ext AS t_ext,
-           i.incl_inventory, i.device_type, i.seller_ids, i.site_domains,
-           i.app_bundles, i.cat, i.cat_tax, i.ext AS i_ext,
-           c.curator, c.cdealid, c.curfeetype, c.ext AS c_ext
+    SELECT d.*, t.deal_floor, t.currency, t.price_type, t.start_date, t.end_date,
+           i.geo_countries, i.geo_regions, i.publisher_ids, i.site_ids
     FROM deals d
     LEFT JOIN terms t ON d.id = t.deal_id
     LEFT JOIN inventory i ON d.id = i.deal_id
-    LEFT JOIN curation c ON d.id = c.deal_id
     WHERE d.external_deal_id = ?
   `).get(externalDealId) as any;
 
@@ -259,16 +212,11 @@ export function listDeals(options?: {
 
   // Get deals
   const rows = database.prepare(`
-    SELECT d.*,
-           t.deal_floor, t.currency, t.price_type, t.start_date, t.end_date,
-           t.countries AS t_countries, t.guar, t.units, t.totalcost, t.ext AS t_ext,
-           i.incl_inventory, i.device_type, i.seller_ids, i.site_domains,
-           i.app_bundles, i.cat, i.cat_tax, i.ext AS i_ext,
-           c.curator, c.cdealid, c.curfeetype, c.ext AS c_ext
+    SELECT d.*, t.deal_floor, t.currency, t.price_type, t.start_date, t.end_date,
+           i.geo_countries, i.geo_regions, i.publisher_ids, i.site_ids
     FROM deals d
     LEFT JOIN terms t ON d.id = t.deal_id
     LEFT JOIN inventory i ON d.id = i.deal_id
-    LEFT JOIN curation c ON d.id = c.deal_id
     ${whereClause}
     ORDER BY d.created_at DESC
     LIMIT ? OFFSET ?
@@ -286,15 +234,8 @@ export function updateDeal(
     name?: string;
     description?: string;
     adTypes?: number[];
-    wseat?: string[];
-    bseat?: string[];
-    auxData?: number | null;
-    pubCount?: number | null;
-    dInventory?: number | null;
-    ext?: Record<string, unknown> | null;
     terms?: Partial<Terms>;
     inventory?: Partial<Inventory>;
-    curation?: Partial<Curation> | null;
   }
 ): Deal | null {
   const database = getDatabase();
@@ -315,30 +256,6 @@ export function updateDeal(
   if (updates.adTypes) {
     dealUpdates.push("ad_types = ?");
     dealParams.push(JSON.stringify(updates.adTypes));
-  }
-  if (updates.wseat) {
-    dealUpdates.push("wseat = ?");
-    dealParams.push(JSON.stringify(updates.wseat));
-  }
-  if (updates.bseat) {
-    dealUpdates.push("bseat = ?");
-    dealParams.push(JSON.stringify(updates.bseat));
-  }
-  if (updates.auxData !== undefined) {
-    dealUpdates.push("auxdata = ?");
-    dealParams.push(updates.auxData);
-  }
-  if (updates.pubCount !== undefined) {
-    dealUpdates.push("pubcount = ?");
-    dealParams.push(updates.pubCount);
-  }
-  if (updates.dInventory !== undefined) {
-    dealUpdates.push("dinventory = ?");
-    dealParams.push(updates.dInventory);
-  }
-  if (updates.ext !== undefined) {
-    dealUpdates.push("ext = ?");
-    dealParams.push(updates.ext ? JSON.stringify(updates.ext) : null);
   }
 
   dealParams.push(id);
@@ -369,74 +286,10 @@ export function updateDeal(
       termUpdates.push("end_date = ?");
       termParams.push(updates.terms.endDate);
     }
-    if (updates.terms.countries) {
-      termUpdates.push("countries = ?");
-      termParams.push(JSON.stringify(updates.terms.countries));
-    }
-    if (updates.terms.guar !== undefined) {
-      termUpdates.push("guar = ?");
-      termParams.push(updates.terms.guar);
-    }
-    if (updates.terms.units !== undefined) {
-      termUpdates.push("units = ?");
-      termParams.push(updates.terms.units);
-    }
-    if (updates.terms.totalCost !== undefined) {
-      termUpdates.push("totalcost = ?");
-      termParams.push(updates.terms.totalCost);
-    }
-    if (updates.terms.ext !== undefined) {
-      termUpdates.push("ext = ?");
-      termParams.push(updates.terms.ext ? JSON.stringify(updates.terms.ext) : null);
-    }
 
     if (termUpdates.length > 0) {
       termParams.push(id);
       database.prepare(`UPDATE terms SET ${termUpdates.join(", ")} WHERE deal_id = ?`).run(...termParams);
-    }
-  }
-
-  // Update curation if provided
-  if (updates.curation !== undefined) {
-    if (updates.curation === null) {
-      database.prepare("DELETE FROM curation WHERE deal_id = ?").run(id);
-    } else {
-      const existing = database.prepare("SELECT deal_id FROM curation WHERE deal_id = ?").get(id);
-      if (existing) {
-        const curUpdates: string[] = [];
-        const curParams: any[] = [];
-        if (updates.curation.curator !== undefined) {
-          curUpdates.push("curator = ?");
-          curParams.push(updates.curation.curator);
-        }
-        if (updates.curation.cdealId !== undefined) {
-          curUpdates.push("cdealid = ?");
-          curParams.push(updates.curation.cdealId);
-        }
-        if (updates.curation.curFeeType !== undefined) {
-          curUpdates.push("curfeetype = ?");
-          curParams.push(updates.curation.curFeeType);
-        }
-        if (updates.curation.ext !== undefined) {
-          curUpdates.push("ext = ?");
-          curParams.push(updates.curation.ext ? JSON.stringify(updates.curation.ext) : null);
-        }
-        if (curUpdates.length > 0) {
-          curParams.push(id);
-          database.prepare(`UPDATE curation SET ${curUpdates.join(", ")} WHERE deal_id = ?`).run(...curParams);
-        }
-      } else {
-        database.prepare(`
-          INSERT INTO curation (deal_id, curator, cdealid, curfeetype, ext)
-          VALUES (?, ?, ?, ?, ?)
-        `).run(
-          id,
-          updates.curation.curator || null,
-          updates.curation.cdealId || null,
-          updates.curation.curFeeType ?? null,
-          updates.curation.ext ? JSON.stringify(updates.curation.ext) : null
-        );
-      }
     }
   }
 
@@ -485,10 +338,9 @@ export function getBuyerSeatById(id: string): BuyerSeat | null {
     seatId: row.seat_id,
     providerId: row.provider_id,
     buyerStatus: row.buyer_status,
-    approvedAt: row.approved_at,
+    acceptedAt: row.accepted_at,
     rejectionReason: row.rejection_reason,
     platformDealId: row.platform_deal_id,
-    ext: row.ext ? JSON.parse(row.ext) : null,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
@@ -504,10 +356,9 @@ export function getBuyerSeatsForDeal(dealId: string): BuyerSeat[] {
     seatId: row.seat_id,
     providerId: row.provider_id,
     buyerStatus: row.buyer_status,
-    approvedAt: row.approved_at,
+    acceptedAt: row.accepted_at,
     rejectionReason: row.rejection_reason,
     platformDealId: row.platform_deal_id,
-    ext: row.ext ? JSON.parse(row.ext) : null,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   }));
@@ -524,8 +375,8 @@ export function updateBuyerSeatStatus(
   const updates: string[] = ["buyer_status = ?", "updated_at = ?"];
   const params: any[] = [status, now];
 
-  if (status === BuyerStatus.APPROVED) {
-    updates.push("approved_at = ?");
+  if (status === BuyerStatus.ACCEPTED) {
+    updates.push("accepted_at = ?");
     params.push(now);
   }
   if (options?.platformDealId) {
@@ -578,21 +429,7 @@ function rowToDeal(row: any): Deal {
     seller: row.seller,
     description: row.description,
     sellerStatus: row.seller_status,
-    adTypes: JSON.parse(row.ad_types || "[]"),
-    wseat: JSON.parse(row.wseat || "[]"),
-    bseat: JSON.parse(row.bseat || "[]"),
-    auxData: row.auxdata ?? null,
-    pubCount: row.pubcount ?? null,
-    dInventory: row.dinventory ?? null,
-    curation: row.curator !== null || row.cdealid !== null || row.curfeetype !== null
-      ? {
-          curator: row.curator,
-          cdealId: row.cdealid,
-          curFeeType: row.curfeetype,
-          ext: row.c_ext ? JSON.parse(row.c_ext) : null,
-        }
-      : null,
-    ext: row.ext ? JSON.parse(row.ext) : null,
+    adTypes: JSON.parse(row.ad_types),
     organizationId: row.organization_id,
     terms: {
       dealFloor: row.deal_floor,
@@ -600,22 +437,13 @@ function rowToDeal(row: any): Deal {
       priceType: row.price_type,
       startDate: row.start_date,
       endDate: row.end_date,
-      countries: JSON.parse(row.t_countries || "[]"),
-      guar: row.guar ?? null,
-      units: row.units ?? null,
-      totalCost: row.totalcost ?? null,
-      ext: row.t_ext ? JSON.parse(row.t_ext) : null,
     },
-    inventory: row.incl_inventory
+    inventory: row.geo_countries
       ? {
-          inclInventory: JSON.parse(row.incl_inventory || "[]"),
-          deviceType: JSON.parse(row.device_type || "[]"),
-          sellerIds: JSON.parse(row.seller_ids || "[]"),
-          siteDomains: JSON.parse(row.site_domains || "[]"),
-          appBundles: JSON.parse(row.app_bundles || "[]"),
-          cat: JSON.parse(row.cat || "[]"),
-          catTax: row.cat_tax ?? null,
-          ext: row.i_ext ? JSON.parse(row.i_ext) : null,
+          geoCountries: JSON.parse(row.geo_countries || "[]"),
+          geoRegions: JSON.parse(row.geo_regions || "[]"),
+          publisherIds: JSON.parse(row.publisher_ids || "[]"),
+          siteIds: JSON.parse(row.site_ids || "[]"),
         }
       : null,
     buyerSeats,

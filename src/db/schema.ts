@@ -1,6 +1,6 @@
 /**
  * IAB Deals MCP Server - Database Schema
- * SQLite schema definitions per IAB Deal Sync API v1.0
+ * SQLite schema definitions
  */
 
 /** SQL to create all tables */
@@ -22,13 +22,7 @@ CREATE TABLE IF NOT EXISTS deals (
   seller TEXT NOT NULL,
   description TEXT,
   seller_status INTEGER NOT NULL DEFAULT 2,
-  ad_types TEXT NOT NULL DEFAULT '[]', -- JSON array, empty = all types
-  wseat TEXT DEFAULT '[]', -- JSON array of whitelisted buyer seat IDs
-  bseat TEXT DEFAULT '[]', -- JSON array of blocked buyer seat IDs
-  auxdata INTEGER, -- AuxData enum (0-4)
-  pubcount INTEGER, -- PubCount enum (0-2)
-  dinventory INTEGER, -- DynamicInventory enum (0-2)
-  ext TEXT, -- JSON extension object
+  ad_types TEXT NOT NULL, -- JSON array
   organization_id TEXT NOT NULL,
   created_at TEXT NOT NULL DEFAULT (datetime('now')),
   updated_at TEXT NOT NULL DEFAULT (datetime('now')),
@@ -40,38 +34,19 @@ CREATE TABLE IF NOT EXISTS terms (
   deal_id TEXT PRIMARY KEY,
   deal_floor REAL NOT NULL,
   currency TEXT NOT NULL DEFAULT 'USD',
-  price_type INTEGER NOT NULL DEFAULT 2, -- SECOND_PRICE_PLUS per spec
+  price_type INTEGER NOT NULL DEFAULT 1,
   start_date TEXT NOT NULL,
   end_date TEXT,
-  countries TEXT DEFAULT '[]', -- JSON array of ISO-3166-1 alpha-3 codes
-  guar INTEGER, -- Guaranteed enum (0-1)
-  units INTEGER, -- Total impressions
-  totalcost REAL, -- Total cost
-  ext TEXT, -- JSON extension object
   FOREIGN KEY (deal_id) REFERENCES deals(id) ON DELETE CASCADE
 );
 
 -- Inventory table (1:1 with deals, optional)
 CREATE TABLE IF NOT EXISTS inventory (
   deal_id TEXT PRIMARY KEY,
-  incl_inventory TEXT DEFAULT '[]', -- JSON array of IncludedInventory enum values
-  device_type TEXT DEFAULT '[]', -- JSON array of device type codes
-  seller_ids TEXT DEFAULT '[]', -- JSON array of seller IDs (max 64)
-  site_domains TEXT DEFAULT '[]', -- JSON array of site domains
-  app_bundles TEXT DEFAULT '[]', -- JSON array of app bundle IDs
-  cat TEXT DEFAULT '[]', -- JSON array of IAB content categories
-  cat_tax INTEGER, -- Content category taxonomy
-  ext TEXT, -- JSON extension object
-  FOREIGN KEY (deal_id) REFERENCES deals(id) ON DELETE CASCADE
-);
-
--- Curation table (1:1 with deals, optional)
-CREATE TABLE IF NOT EXISTS curation (
-  deal_id TEXT PRIMARY KEY,
-  curator TEXT, -- Curator name/identifier
-  cdealid TEXT, -- Curator's deal ID
-  curfeetype INTEGER, -- CurationFeeType enum (0-4)
-  ext TEXT, -- JSON extension object
+  geo_countries TEXT, -- JSON array
+  geo_regions TEXT, -- JSON array
+  publisher_ids TEXT, -- JSON array
+  site_ids TEXT, -- JSON array
   FOREIGN KEY (deal_id) REFERENCES deals(id) ON DELETE CASCADE
 );
 
@@ -82,10 +57,9 @@ CREATE TABLE IF NOT EXISTS buyer_seats (
   seat_id TEXT NOT NULL,
   provider_id TEXT NOT NULL,
   buyer_status INTEGER NOT NULL DEFAULT 0,
-  approved_at TEXT,
+  accepted_at TEXT,
   rejection_reason TEXT,
   platform_deal_id TEXT,
-  ext TEXT, -- JSON extension object
   created_at TEXT NOT NULL DEFAULT (datetime('now')),
   updated_at TEXT NOT NULL DEFAULT (datetime('now')),
   FOREIGN KEY (deal_id) REFERENCES deals(id) ON DELETE CASCADE
@@ -116,7 +90,6 @@ CREATE INDEX IF NOT EXISTS idx_status_history_deal ON status_history(deal_id);
 export const DROP_TABLES_SQL = `
 DROP TABLE IF EXISTS status_history;
 DROP TABLE IF EXISTS buyer_seats;
-DROP TABLE IF EXISTS curation;
 DROP TABLE IF EXISTS inventory;
 DROP TABLE IF EXISTS terms;
 DROP TABLE IF EXISTS deals;

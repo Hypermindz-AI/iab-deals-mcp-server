@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * IAB Deals MCP Server
- * MCP Server implementing IAB Deal Sync API v1.0 for programmatic deal management
+ * MCP Server implementing IAB Deals API v1.0 for programmatic deal management
  *
  * Tools:
  * - deals_create: Create a new deal in draft status
@@ -59,33 +59,17 @@ const TOOLS = [
         adTypes: {
           type: "array",
           items: { type: "integer", enum: [1, 2, 3, 4] },
-          description: "Ad formats: 1=Banner, 2=Video, 3=Audio, 4=Native (optional, empty=all types)",
+          description: "Ad formats: 1=Banner, 2=Video, 3=Audio, 4=Native",
         },
         dealFloor: { type: "number", description: "Minimum CPM price" },
         currency: { type: "string", description: "ISO-4217 currency code (default: USD)" },
-        priceType: { type: "integer", enum: [0, 1, 2, 3], description: "0=Dynamic, 1=First Price, 2=Second Price Plus (default), 3=Fixed" },
+        priceType: { type: "integer", enum: [1, 2], description: "1=floor (minimum), 2=fixed" },
         startDate: { type: "string", format: "date-time", description: "Deal start date (ISO-8601)" },
         endDate: { type: "string", format: "date-time", description: "Deal end date (null=evergreen)" },
-        countries: { type: "array", items: { type: "string" }, description: "ISO-3166-1 alpha-3 country codes" },
-        wseat: { type: "array", items: { type: "string" }, description: "Whitelisted buyer seat IDs" },
-        bseat: { type: "array", items: { type: "string" }, description: "Blocked buyer seat IDs" },
-        auxData: { type: "integer", enum: [0, 1, 2, 3, 4], description: "Auxiliary data signal: 0=No Signal, 1=Deal ID Only, 2=Deal ID+Seat, 3=Full Bid Request, 4=Custom" },
-        pubCount: { type: "integer", enum: [0, 1, 2], description: "Publisher count: 0=Single, 1=Multiple Known, 2=Multiple Unknown" },
-        dInventory: { type: "integer", enum: [0, 1, 2], description: "Dynamic inventory: 0=Static, 1=Dynamic Addition, 2=Dynamic Removal" },
-        guar: { type: "integer", enum: [0, 1], description: "Guaranteed: 0=Non-guaranteed, 1=Guaranteed" },
-        units: { type: "integer", description: "Total units (impressions)" },
-        totalCost: { type: "number", description: "Total cost of the deal" },
-        curation: {
-          type: "object",
-          properties: {
-            curator: { type: "string", description: "Curator name/identifier" },
-            cdealId: { type: "string", description: "Curator's deal ID" },
-            curFeeType: { type: "integer", enum: [0, 1, 2, 3, 4], description: "Fee type: 0=None, 1=Flat CPM, 2=% Media, 3=% Data, 4=Included" },
-          },
-          description: "Curation details for curated deals",
-        },
+        geoCountries: { type: "array", items: { type: "string" }, description: "ISO-3166-1 alpha-3 country codes" },
+        geoRegions: { type: "array", items: { type: "string" }, description: "ISO-3166-2 region codes" },
       },
-      required: ["name", "origin", "seller", "dealFloor", "startDate"],
+      required: ["name", "origin", "seller", "adTypes", "dealFloor", "startDate"],
     },
   },
   {
@@ -102,24 +86,6 @@ const TOOLS = [
         currency: { type: "string", description: "New currency code" },
         startDate: { type: "string", format: "date-time", description: "New start date" },
         endDate: { type: "string", format: "date-time", description: "New end date" },
-        countries: { type: "array", items: { type: "string" }, description: "New country codes" },
-        wseat: { type: "array", items: { type: "string" }, description: "New whitelisted buyer seat IDs" },
-        bseat: { type: "array", items: { type: "string" }, description: "New blocked buyer seat IDs" },
-        auxData: { type: "integer", enum: [0, 1, 2, 3, 4], description: "New auxiliary data signal" },
-        pubCount: { type: "integer", enum: [0, 1, 2], description: "New publisher count" },
-        dInventory: { type: "integer", enum: [0, 1, 2], description: "New dynamic inventory flag" },
-        guar: { type: "integer", enum: [0, 1], description: "New guaranteed flag" },
-        units: { type: "integer", description: "New total units" },
-        totalCost: { type: "number", description: "New total cost" },
-        curation: {
-          type: "object",
-          properties: {
-            curator: { type: "string" },
-            cdealId: { type: "string" },
-            curFeeType: { type: "integer", enum: [0, 1, 2, 3, 4] },
-          },
-          description: "New curation details (null to remove)",
-        },
       },
       required: ["id"],
     },
@@ -166,7 +132,7 @@ const TOOLS = [
     inputSchema: {
       type: "object",
       properties: {
-        status: { type: "integer", enum: [0, 1, 2, 4, 5], description: "Filter by status: 0=Active, 1=Paused, 2=Pending, 4=Complete, 5=Archived" },
+        status: { type: "integer", enum: [0, 1, 2, 4], description: "Filter by status: 0=Active, 1=Paused, 2=Pending, 4=Complete" },
         page: { type: "integer", minimum: 1, description: "Page number (default: 1)" },
         pageSize: { type: "integer", minimum: 1, maximum: 100, description: "Items per page (default: 20)" },
       },

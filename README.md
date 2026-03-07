@@ -1,9 +1,5 @@
 # IAB Deals MCP Server
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Node.js](https://img.shields.io/badge/Node.js-18%2B-green.svg)](https://nodejs.org/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.3-blue.svg)](https://www.typescriptlang.org/)
-
 MCP Server implementing IAB Deals API v1.0 for programmatic deal management.
 
 ## Overview
@@ -24,7 +20,7 @@ This MCP server provides tools for managing programmatic advertising deals follo
 
 ```bash
 # Clone the repository
-git clone https://github.com/IABTechLab/iab-deals-mcp-server.git
+git clone https://github.com/Hypermindz-AI/iab-deals-mcp-server.git
 cd iab-deals-mcp-server
 
 # Install dependencies
@@ -146,28 +142,17 @@ Use deals/pause and deals/resume to control delivery
 | 1 | Paused | Deal is temporarily paused |
 | 2 | Pending | Deal created, not yet sent |
 | 4 | Complete | Deal has completed |
-| 5 | Archived | Deal is archived |
 
 ### Buyer Status Codes
 
 | Code | Status | Description |
 |------|--------|-------------|
 | 0 | Pending | Awaiting provider response |
-| 1 | Approved | Provider approved the deal |
+| 1 | Accepted | Provider accepted the deal |
 | 2 | Rejected | Provider rejected the deal |
-| 3 | Ready to Serve | Deal ready to serve impressions |
-| 4 | Active | Deal actively serving |
-| 5 | Paused | Deal paused on provider |
-| 6 | Complete | Deal completed on provider |
-
-### Price Types
-
-| Code | Type | Description |
-|------|------|-------------|
-| 0 | Dynamic | Dynamic pricing |
-| 1 | First Price | First price auction |
-| 2 | Second Price Plus | Second price plus (default) |
-| 3 | Fixed | Fixed price |
+| 3 | Expired | Deal expired before response |
+| 4 | Paused | Deal paused on provider |
+| 5 | Error | Error communicating with provider |
 
 ### Ad Types
 
@@ -177,13 +162,6 @@ Use deals/pause and deals/resume to control delivery
 | 2 | Video |
 | 3 | Audio |
 | 4 | Native |
-
-### Curation
-
-Deals can include optional curation details for curated marketplace deals:
-- `curator`: Curator name/identifier
-- `cdealId`: Curator's deal ID
-- `curFeeType`: Fee type (0=None, 1=Flat CPM, 2=% Media, 3=% Data, 4=Included)
 
 ## Project Structure
 
@@ -197,8 +175,6 @@ iab-deals-mcp-server/
 │   │   ├── terms.ts
 │   │   ├── inventory.ts
 │   │   ├── buyer-seat.ts
-│   │   ├── curation.ts
-│   │   ├── enums.ts
 │   │   └── provider.ts
 │   ├── tools/             # MCP tool implementations
 │   │   └── index.ts
@@ -289,7 +265,7 @@ MIT License - see [LICENSE](LICENSE) for details.
 
 ## Contributing
 
-Contributions welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+This is a reference implementation for the IAB Tech Lab Agentic Working Group. Contributions welcome!
 
 ## Resources
 
@@ -299,4 +275,4 @@ Contributions welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guideli
 
 ---
 
-Built by [HyperMindZ](https://hypermindz.ai) for the [IAB Tech Lab](https://iabtechlab.com/) Agentic Task Force.
+Built by [HyperMindZ](https://hypermindz.ai) for the IAB Tech Lab Agentic Task Force.

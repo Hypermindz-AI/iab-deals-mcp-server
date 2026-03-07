@@ -1,19 +1,10 @@
 /**
  * IAB Deals MCP Server - Demo Data Seeding
- * Seeds realistic sample deals for demonstration per IAB Deal Sync API v1.0
+ * Seeds realistic sample deals for demonstration
  */
 
 import { createDeal, listDeals } from "./database.js";
-import {
-  AdType,
-  PriceType,
-  IncludedInventory,
-  DynamicInventory,
-  AuxData,
-  PubCount,
-  CurationFeeType,
-  Guaranteed,
-} from "../models/index.js";
+import { AdType, PriceType } from "../models/index.js";
 
 /** Seed demo data if database is empty */
 export function seedDemoData(): void {
@@ -36,27 +27,15 @@ export function seedDemoData(): void {
       priceType: PriceType.FIXED,
       startDate: new Date("2026-01-01T00:00:00Z").toISOString(),
       endDate: new Date("2026-03-31T23:59:59Z").toISOString(),
-      countries: ["USA"],
-      guar: Guaranteed.GUARANTEED,
-      units: 500000,
-      totalCost: 17500.0,
-      ext: null,
     },
     {
       description: "Premium CTV inventory for Q1 auto brand campaign targeting cord-cutters",
       inventory: {
-        inclInventory: [IncludedInventory.CTV],
-        deviceType: [],
-        sellerIds: ["pub-hulu", "pub-peacock", "pub-paramount"],
-        siteDomains: [],
-        appBundles: [],
-        cat: ["IAB2"],  // Automotive
-        catTax: null,
-        ext: null,
+        geoCountries: ["USA"],
+        geoRegions: ["US-CA", "US-NY", "US-TX", "US-FL"],
+        publisherIds: ["pub-hulu", "pub-peacock", "pub-paramount"],
+        siteIds: [],
       },
-      dInventory: DynamicInventory.STATIC,
-      auxData: AuxData.DEAL_ID_AND_SEAT,
-      pubCount: PubCount.MULTIPLE_KNOWN,
     }
   );
 
@@ -69,26 +48,17 @@ export function seedDemoData(): void {
     {
       dealFloor: 12.5,
       currency: "USD",
-      priceType: PriceType.FIRST_PRICE,
+      priceType: PriceType.FLOOR,
       startDate: new Date("2026-11-01T00:00:00Z").toISOString(),
       endDate: new Date("2026-12-31T23:59:59Z").toISOString(),
-      countries: ["USA", "CAN"],
-      guar: null,
-      units: null,
-      totalCost: null,
-      ext: null,
     },
     {
       description: "Multi-format PMP for holiday shopping season",
       inventory: {
-        inclInventory: [IncludedInventory.SITE],
-        deviceType: [],
-        sellerIds: ["pub-cnn", "pub-nyt", "pub-wapo"],
-        siteDomains: ["cnn.com", "nytimes.com", "washingtonpost.com"],
-        appBundles: [],
-        cat: ["IAB22"],  // Shopping
-        catTax: null,
-        ext: null,
+        geoCountries: ["USA", "CAN"],
+        geoRegions: [],
+        publisherIds: ["pub-cnn", "pub-nyt", "pub-wapo"],
+        siteIds: [],
       },
     }
   );
@@ -105,25 +75,15 @@ export function seedDemoData(): void {
       priceType: PriceType.FIXED,
       startDate: new Date("2026-02-01T00:00:00Z").toISOString(),
       endDate: null, // Evergreen
-      countries: ["USA"],
-      guar: null,
-      units: null,
-      totalCost: null,
-      ext: null,
     },
     {
       description: "Digital out-of-home network across major sports venues and stadiums",
       inventory: {
-        inclInventory: [IncludedInventory.DOOH],
-        deviceType: [],
-        sellerIds: ["pub-dooh-nfl", "pub-dooh-nba", "pub-dooh-mlb"],
-        siteDomains: [],
-        appBundles: [],
-        cat: ["IAB17"],  // Sports
-        catTax: null,
-        ext: null,
+        geoCountries: ["USA"],
+        geoRegions: [],
+        publisherIds: ["pub-dooh-nfl", "pub-dooh-nba", "pub-dooh-mlb"],
+        siteIds: ["venue-sofi", "venue-msg", "venue-att"],
       },
-      dInventory: DynamicInventory.DYNAMIC_ADDITION,
     }
   );
 
@@ -136,31 +96,22 @@ export function seedDemoData(): void {
     {
       dealFloor: 25.0,
       currency: "USD",
-      priceType: PriceType.SECOND_PRICE_PLUS,
+      priceType: PriceType.FLOOR,
       startDate: new Date("2026-01-15T00:00:00Z").toISOString(),
       endDate: new Date("2026-06-30T23:59:59Z").toISOString(),
-      countries: ["USA", "GBR", "AUS"],
-      guar: null,
-      units: null,
-      totalCost: null,
-      ext: null,
     },
     {
       description: "Host-read and dynamic insertion across top-50 podcasts",
       inventory: {
-        inclInventory: [IncludedInventory.AUDIO],
-        deviceType: [],
-        sellerIds: ["pub-spotify", "pub-iheartmedia", "pub-wondery"],
-        siteDomains: [],
-        appBundles: [],
-        cat: ["IAB1"],  // Arts & Entertainment
-        catTax: null,
-        ext: null,
+        geoCountries: ["USA", "GBR", "AUS"],
+        geoRegions: [],
+        publisherIds: ["pub-spotify", "pub-iheartmedia", "pub-wondery"],
+        siteIds: [],
       },
     }
   );
 
-  // Deal 5: Gaming & Esports (with curation and wseat)
+  // Deal 5: Gaming & Esports
   createDeal(
     "Gaming & Esports Sponsorship",
     "ads.gamingmedia.gg",
@@ -169,35 +120,17 @@ export function seedDemoData(): void {
     {
       dealFloor: 18.0,
       currency: "USD",
-      priceType: PriceType.SECOND_PRICE_PLUS,
+      priceType: PriceType.FLOOR,
       startDate: new Date("2026-03-01T00:00:00Z").toISOString(),
       endDate: new Date("2026-08-31T23:59:59Z").toISOString(),
-      countries: ["USA", "CAN", "GBR", "DEU", "KOR"],
-      guar: Guaranteed.NON_GUARANTEED,
-      units: null,
-      totalCost: null,
-      ext: null,
     },
     {
       description: "Reach gaming audiences across streams, tournaments, and gaming sites",
       inventory: {
-        inclInventory: [IncludedInventory.SITE, IncludedInventory.APP],
-        deviceType: [],
-        sellerIds: ["pub-twitch", "pub-youtube-gaming", "pub-ign"],
-        siteDomains: ["twitch.tv", "ign.com"],
-        appBundles: [],
-        cat: ["IAB9"],  // Hobbies & Interests (Gaming)
-        catTax: null,
-        ext: null,
-      },
-      wseat: ["seat-activision", "seat-ea", "seat-riot"],
-      auxData: AuxData.FULL_BID_REQUEST,
-      pubCount: PubCount.MULTIPLE_KNOWN,
-      curation: {
-        curator: "GameStack Curation",
-        cdealId: "GS-ESPORTS-2026",
-        curFeeType: CurationFeeType.PERCENT_MEDIA,
-        ext: null,
+        geoCountries: ["USA", "CAN", "GBR", "DEU", "KOR"],
+        geoRegions: [],
+        publisherIds: ["pub-twitch", "pub-youtube-gaming", "pub-ign"],
+        siteIds: [],
       },
     }
   );
