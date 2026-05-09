@@ -1,0 +1,18 @@
+{
+  "description": "Sample request to create a deal via the MCP server",
+  "tool": "deals/create",
+  "arguments": {
+    "name": "Q2 Premium Video Campaign",
+    "origin": "ads.brandcorp.com",
+    "seller": "Brand Corp Media",
+    "description": "Premium video inventory for Q2 brand awareness campaign",
+    "adTypes": [2],
+    "dealFloor": 28.50,
+    "currency": "USD",
+    "priceType": 1,
+    "startDate": "2026-04-01T00:00:00Z",
+    "endDate": "2026-06-30T23:59:59Z",
+    "geoCountries": ["USA", "CAN"],
+    "geoRegions": ["US-CA", "US-NY"]
+  }
+}
